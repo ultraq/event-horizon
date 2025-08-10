@@ -1,0 +1,71 @@
+/*
+ * Copyright 2025, Emanuel Rabina (http://www.ultraq.net.nz/)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+plugins {
+	id 'idea'
+	id 'nz.net.ultraq.gradle.fluent-configuration' version '0.6.0'
+}
+
+description = 'An async, in-process, event system'
+version = '0.1.0-SNAPSHOT'
+group = 'nz.net.ultraq'
+
+// @formatter:off
+configure {
+	createGroovyProject()
+		.useJavaVersion(17)
+		.useMavenCentralRepositories()
+		.withJarOptions() {
+			manifest {
+				attributes 'Automatic-Module-Name': 'nz.net.ultraq.eventhorizon'
+			}
+		}
+		.withSourcesJar()
+		.withGroovydocJar()
+		.configureSource()
+			.withSourceDirectory('source')
+			.withDependencies {
+				implementation 'org.apache.groovy:groovy:4.0.28'
+				implementation 'org.slf4j:slf4j-api:2.0.17'
+			}
+		.configureVerification()
+			.withTestDirectory('test')
+			.withTestDependencies() {
+				testImplementation 'org.slf4j:slf4j-simple:2.0.17'
+				testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
+			}
+			.useJUnitJupiter()
+			.useJacoco()
+
+	createMavenPublication()
+		.withArtifacts(jar, sourcesJar, groovydocJar)
+		.configurePom() {
+			url = 'https://github.com/ultraq/event-horizon'
+			inceptionYear = '2019'
+		}
+		.useApache20License()
+		.withGitHubScm('ultraq')
+		.withDevelopers([
+			name: 'Emanuel Rabina',
+			email: 'emanuelrabina@gmail.com',
+			url: 'https://www.ultraq.net.nz'
+		])
+		.publishToMavenCentral(
+			findProperty('mavenCentral.publisher.username'),
+			findProperty('mavenCentral.publisher.password')
+		)
+}
+// @formatter:on
