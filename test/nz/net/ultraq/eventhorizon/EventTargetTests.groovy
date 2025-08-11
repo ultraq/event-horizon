@@ -76,17 +76,28 @@ class EventTargetTests extends Specification {
 
 	def 'Exceptions in handlers do not prevent execution of further handlers'() {
 		given:
-			var target = new TestEventTarget()
 			var event = new TestEvent()
-			var listener2 = Mock(EventListener)
+			var listener = Mock(EventListener)
 			target.on(TestEvent) { e ->
 				throw new Exception()
 			}
-			target.on(TestEvent, listener2)
+			target.on(TestEvent, listener)
 		when:
 			target.trigger(event, new TestExecutorService())
 		then:
 			notThrown(Exception)
-			1 * listener2.handleEvent(event)
+			1 * listener.handleEvent(event)
+	}
+
+	def 'Remove an event listener'() {
+		given:
+			var event = new TestEvent()
+			var listener = Mock(EventListener)
+			var remove = target.on(TestEvent, listener)
+		when:
+			remove.remove()
+			target.trigger(event, new TestExecutorService())
+		then:
+			0 * listener.handleEvent(event)
 	}
 }
