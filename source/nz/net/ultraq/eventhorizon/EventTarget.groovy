@@ -19,6 +19,7 @@ package nz.net.ultraq.eventhorizon
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import groovy.transform.PackageScope
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.ExecutorService
@@ -28,9 +29,10 @@ import java.util.concurrent.Executors
  * Inspired by the DOM, an event target is a class that can emit events which
  * can be listened for by the appropriate event listeners.
  *
+ * @param <T> The class implementing this trait, eg: {@code class MyClass implements EventTarget<MyClass>}
  * @author Emanuel Rabina
  */
-trait EventTarget {
+trait EventTarget<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(EventTarget)
 
@@ -43,36 +45,74 @@ trait EventTarget {
 	 * Register an event listener on this event target.
 	 *
 	 * @param eventClass
+	 *   The event type, including any of its subclasses, to listen for.
 	 * @param eventListener
-	 * @return
-	 *   A function that can be executed to deregister the event listener that was
-	 *   just added.
+	 *   The listener to invoke when the event is fired.
+	 * @param removalToken
+	 *   If provided, then this token can be used to remove the event listener
+	 *   later with a call to its {@link RemovalToken#remove} method.
+	 * @return This object so it can be chained.
 	 */
-	public <E extends Event> RemoveEventListenerFunction on(Class<E> eventClass, EventListener<E> eventListener) {
+	public <E extends Event> T addEventListener(Class<E> eventClass, EventListener<E> eventListener, RemovalToken removalToken = null) {
 
 		eventListeners << new Tuple2<>(eventClass, eventListener)
-
-		return { unused ->
-			eventListeners.remove(new Tuple2<>(eventClass, eventListener))
-		}
+		removalToken?.setRemovalItems(this, eventClass, eventListener)
+		return (T)this
 	}
 
 	/**
-	 * Re-fire events on this class through the given event target, effectively
-	 * forwarding events.
+	 * An alias for {@link #removeEventListener}.
+	 */
+	public <E extends Event> T off(Class<E> eventClass, EventListener<E> eventListener) {
+
+		return removeEventListener(eventClass, eventListener)
+	}
+
+	/**
+	 * An alias for {@link #addEventListener}.
+	 */
+	public <E extends Event> T on(Class<E> eventClass, EventListener<E> eventListener, RemovalToken removalToken = null) {
+
+		return addEventListener(eventClass, eventListener, removalToken)
+	}
+
+	/**
+	 * Re-fire the specified event, including any subclasses of the event, through
+	 * the given event target, effectively forwarding events to another object.
 	 *
 	 * @param eventClass
+	 *   The event type, including any of its subclasses, to re-fire on
+	 *   {@code newTarget}.
 	 * @param newTarget
+	 *   The object ot receive and re-fire the events.
+	 * @return This object so it can be chained.
 	 */
-	public <E extends Event> void relay(Class<E> eventClass, EventTarget newTarget) {
+	public <E extends Event> T relay(Class<E> eventClass, EventTarget newTarget) {
 
-		on(eventClass) { event ->
+		addEventListener(eventClass) { event ->
 			newTarget.trigger(event)
 		}
+		return (T)this
 	}
 
 	/**
-	 * Fire an event, invoking all listeners registered for that event, using the
+	 * Deregister an event listener on this event target.
+	 *
+	 * @param eventClass
+	 * @param eventListener
+	 * @return This object so it can be chained.
+	 */
+	public <E extends Event> T removeEventListener(Class<E> eventClass, EventListener<E> eventListener) {
+
+		eventListeners.removeIf { tuple ->
+			return tuple.v1 == eventClass && tuple.v2 == eventListener
+		}
+		return (T)this
+	}
+
+	/**
+	 * Fire an event, invoking all listeners registered for that event (including
+	 * any listeners registered for the event's parent classes), using the
 	 * built-in {@link ExecutorService}.
 	 * <p>
 	 * Events will be processed in a separate thread, and in a FIFO manner,
@@ -82,22 +122,26 @@ trait EventTarget {
 	 * impact other listeners from running.
 	 *
 	 * @param event
+	 * @return This object so it can be chained.
 	 */
-	public <E extends Event> void trigger(E event) {
+	public <E extends Event> T trigger(E event) {
 
-		trigger(event, executorService)
+		return trigger(event, executorService)
 	}
 
 	/**
 	 * A {@link #trigger} implementation with a supplied {@code ExecutorService}.
+	 *
+	 * @param event
+	 * @param executorService
+	 *   A specific {@code ExecutorService} whose {@code execute} method will be
+	 *   used for processing the event.
 	 */
-	public <E extends Event> void trigger(E event, ExecutorService executorService) {
+	public <E extends Event> T trigger(E event, ExecutorService executorService) {
 
 		eventQueue.add(event)
-
 		executorService.execute { ->
 			Thread.currentThread().name = "${this.class.simpleName} event handler"
-
 			var nextEvent = eventQueue.remove()
 			eventListeners.each { tuple ->
 				def (eventClass, listener) = tuple
@@ -106,10 +150,11 @@ trait EventTarget {
 						listener.handleEvent(nextEvent)
 					}
 					catch (Exception ex) {
-						logger.error("An error occurred while processing ${nextEvent.class.simpleName} events on ${this.class.simpleName}", ex)
+						logger.error('An error occurred while processing {} events on {}', nextEvent.class.simpleName, this.class.simpleName, ex)
 					}
 				}
 			}
 		}
+		return (T)this
 	}
 }

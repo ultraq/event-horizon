@@ -29,7 +29,7 @@ import java.util.concurrent.Executors
  */
 class EventTargetTests extends Specification {
 
-	private class TestEventTarget implements EventTarget {}
+	private class TestEventTarget implements EventTarget<TestEventTarget> {}
 
 	private class TestEvent implements Event {}
 
@@ -93,9 +93,10 @@ class EventTargetTests extends Specification {
 		given:
 			var event = new TestEvent()
 			var listener = Mock(EventListener)
-			var remove = target.on(TestEvent, listener)
+			var removalToken = new RemovalToken()
+			target.on(TestEvent, listener, removalToken)
 		when:
-			remove.remove()
+			removalToken.remove()
 			target.trigger(event, new TestExecutorService())
 		then:
 			0 * listener.handleEvent(event)
