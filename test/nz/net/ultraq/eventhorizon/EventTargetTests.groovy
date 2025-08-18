@@ -94,7 +94,7 @@ class EventTargetTests extends Specification {
 			var event = new TestEvent()
 			var listener = Mock(EventListener)
 			var removalToken = new RemovalToken()
-			target.on(TestEvent, listener, removalToken)
+			target.on(TestEvent, removalToken, listener)
 		when:
 			removalToken.remove()
 			target.trigger(event, new TestExecutorService())

@@ -45,14 +45,14 @@ trait EventTarget<T> {
 	 *
 	 * @param eventClass
 	 *   The event type, including any of its subclasses, to listen for.
-	 * @param eventListener
-	 *   The listener to invoke when the event is fired.
 	 * @param removalToken
 	 *   If provided, then this token can be used to remove the event listener
 	 *   later with a call to its {@link RemovalToken#remove} method.
+	 * @param eventListener
+	 *   The listener to invoke when the event is fired.
 	 * @return This object so it can be chained.
 	 */
-	public <E extends Event> T addEventListener(Class<E> eventClass, EventListener<E> eventListener, RemovalToken removalToken = null) {
+	public <E extends Event> T addEventListener(Class<E> eventClass, RemovalToken removalToken = null, EventListener<E> eventListener) {
 
 		eventListeners << new Tuple2<>(eventClass, eventListener)
 		removalToken?.setRemovalItems(this, eventClass, eventListener)
@@ -70,9 +70,9 @@ trait EventTarget<T> {
 	/**
 	 * An alias for {@link #addEventListener}.
 	 */
-	public <E extends Event> T on(Class<E> eventClass, EventListener<E> eventListener, RemovalToken removalToken = null) {
+	public <E extends Event> T on(Class<E> eventClass, RemovalToken removalToken = null, EventListener<E> eventListener) {
 
-		return addEventListener(eventClass, eventListener, removalToken)
+		return addEventListener(eventClass, removalToken, eventListener)
 	}
 
 	/**
