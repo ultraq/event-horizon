@@ -4,6 +4,7 @@ Event Horizon
 
 [![build](https://github.com/ultraq/event-horizon/actions/workflows/build.yml/badge.svg)](https://github.com/ultraq/event-horizon/actions/workflows/build.yml)
 [![codecov](https://codecov.io/gh/ultraq/event-horizon/graph/badge.svg?token=3A4WLOZ30M)](https://codecov.io/gh/ultraq/event-horizon)
+[![Maven Central Version](https://img.shields.io/maven-central/v/nz.net.ultraq/event-horizon)](https://central.sonatype.com/artifact/nz.net.ultraq/event-horizon)
 
 An async, in-process, event system.  Originally, the event system for the
 [Red Horizon](https://github.com/ultraq/redhorizon) game engine, hence the name.

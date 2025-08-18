@@ -19,7 +19,9 @@ package nz.net.ultraq.eventhorizon
 /**
  * Inspired by the DOM, an event listener is a function which is applied to an
  * {@link EventTarget} and invoked when that target emits the event being
- * listened for.
+ * listened for.  As a functional interface, it'll be rare to implement this
+ * interface explicitly, instead being more succintly represented as a lambda
+ * or closure.
  *
  * @author Emanuel Rabina
  */

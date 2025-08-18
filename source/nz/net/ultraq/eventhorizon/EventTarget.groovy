@@ -25,8 +25,8 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 /**
- * Inspired by the DOM, an event target is a class that can generate events
- * which can be listened for by the appropriate event listeners.
+ * Inspired by the DOM, an event target is a class that can emit events which
+ * can be listened for by the appropriate event listeners.
  *
  * @author Emanuel Rabina
  */
@@ -72,7 +72,8 @@ trait EventTarget {
 	}
 
 	/**
-	 * Fire an event, invoking all listeners registered for that event.
+	 * Fire an event, invoking all listeners registered for that event, using the
+	 * built-in {@link ExecutorService}.
 	 * <p>
 	 * Events will be processed in a separate thread, and in a FIFO manner,
 	 * ensuring that this method won't block while it waits on event handlers, and
@@ -81,7 +82,6 @@ trait EventTarget {
 	 * impact other listeners from running.
 	 *
 	 * @param event
-	 * @return This object.
 	 */
 	public <E extends Event> void trigger(E event) {
 

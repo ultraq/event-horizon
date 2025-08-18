@@ -17,7 +17,8 @@
 package nz.net.ultraq.eventhorizon
 
 /**
- * Base type for all events.
+ * Base type for all events, any class that implements this interface can be
+ * emitted or listened to by the {@link EventTarget} trait.
  *
  * @author Emanuel Rabina
  */
