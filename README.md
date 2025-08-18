@@ -19,7 +19,7 @@ Add a dependency to your project with the following co-ordinates:
 
 - GroupId: `nz.net.ultraq`
 - ArtifactId: `event-horizon`
-- Version: `0.1.0`
+- Version: `0.2.0`
 
 Check the [project tags](https://github.com/ultraq/event-horizon/tags) for a
 list of available versions.
@@ -31,7 +31,6 @@ Usage
 Firstly, the class that will want to emit events should implement the
 `EventTarget` interface.  Then, anywhere within an instance of that class, it
 can call the `trigger` method to emit an event:
-
 
 ```java
 import nz.net.ultraq.eventhorizon.EventTarget;
@@ -46,7 +45,7 @@ public class MyClass implements EventTarget {
 
 Event objects are any class that implements the `Event` interface, and can
 contain any data you wish to pass along with an event.  Java `record`s make for
-really succint event types:
+very succinct event types:
 
 ```java
 import nz.net.ultraq.eventhorizon.Event;

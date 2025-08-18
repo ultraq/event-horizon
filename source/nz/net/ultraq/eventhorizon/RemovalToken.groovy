@@ -19,9 +19,9 @@ package nz.net.ultraq.eventhorizon
 import groovy.transform.PackageScope
 
 /**
- * An object that, when provided as the last parameter to the
- * {@link EventTarget#addEventListener} method, can be used to remove the event
- * listener it was paired with, through its {@link #remove} method.
+ * An object that, when provided to the {@link EventTarget#addEventListener}
+ * method, can be used to remove the event listener it was paired with, through
+ * its {@link #remove} method.
  *
  * @author Emanuel Rabina
  */

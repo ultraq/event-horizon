@@ -46,8 +46,8 @@ trait EventTarget<T> {
 	 * @param eventClass
 	 *   The event type, including any of its subclasses, to listen for.
 	 * @param removalToken
-	 *   If provided, then this token can be used to remove the event listener
-	 *   later with a call to its {@link RemovalToken#remove} method.
+	 *   Optional, if provided then the token can be used to remove the event
+	 *   listener later with a call to its {@link RemovalToken#remove} method.
 	 * @param eventListener
 	 *   The listener to invoke when the event is fired.
 	 * @return This object so it can be chained.
