@@ -50,13 +50,12 @@ class EventTargetTests extends Specification {
 		}
 	}
 
-	var target = new TestEventTarget()
-
 	def 'Handler invoked for exact event class matches'() {
 		given:
+			var target = new TestEventTarget()
+			var event = new TestEvent()
 			var listener = Mock(EventListener)
 			target.on(TestEvent, listener)
-			var event = new TestEvent()
 		when:
 			target.trigger(event, new TestExecutorService())
 		then:
@@ -65,9 +64,10 @@ class EventTargetTests extends Specification {
 
 	def 'Handler invoked for subclass event matches'() {
 		given:
+			var target = new TestEventTarget()
+			var event = new TestSubclassEvent()
 			var listener = Mock(EventListener)
 			target.on(TestEvent, listener)
-			var event = new TestSubclassEvent()
 		when:
 			target.trigger(event, new TestExecutorService())
 		then:
@@ -76,6 +76,7 @@ class EventTargetTests extends Specification {
 
 	def 'Exceptions in handlers do not prevent execution of further handlers'() {
 		given:
+			var target = new TestEventTarget()
 			var event = new TestEvent()
 			var listener = Mock(EventListener)
 			target.on(TestEvent) { e ->
@@ -89,8 +90,26 @@ class EventTargetTests extends Specification {
 			1 * listener.handleEvent(event)
 	}
 
+	def 'Use relay to forward events to other objects'() {
+		given:
+			var target = new TestEventTarget()
+			var newTarget = new TestEventTarget()
+			var event = new TestEvent()
+			var listener1 = Mock(EventListener)
+			target.on(TestEvent, listener1)
+			var listener2 = Mock(EventListener)
+			newTarget.on(TestEvent, listener2)
+			target.relay(TestEvent, newTarget)
+		when:
+			target.trigger(event, new TestExecutorService())
+		then:
+			1 * listener1.handleEvent(event)
+			1 * listener2.handleEvent(event)
+	}
+
 	def 'Remove an event listener with the off method'() {
 		given:
+			var target = new TestEventTarget()
 			var event = new TestEvent()
 			var listener = Mock(EventListener)
 			target.on(TestEvent, listener)
@@ -103,6 +122,7 @@ class EventTargetTests extends Specification {
 
 	def 'Remove an event listener with the removal token'() {
 		given:
+			var target = new TestEventTarget()
 			var event = new TestEvent()
 			var listener = Mock(EventListener)
 			var removalToken = new RemovalToken()
