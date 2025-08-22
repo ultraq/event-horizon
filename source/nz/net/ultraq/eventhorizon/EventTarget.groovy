@@ -52,6 +52,8 @@ trait EventTarget<T> {
 	 *   The listener to invoke when the event is fired.
 	 * @return This object so it can be chained.
 	 */
+	// This first "public" is needed otherwise the Groovy parser gets tripped up because of the generics
+	@SuppressWarnings('GrUnnecessaryPublicModifier')
 	public <E extends Event> T addEventListener(Class<E> eventClass, RemovalToken removalToken = null, EventListener<E> eventListener) {
 
 		eventListeners << new Tuple2<>(eventClass, eventListener)
@@ -62,7 +64,7 @@ trait EventTarget<T> {
 	/**
 	 * An alias for {@link #removeEventListener}.
 	 */
-	public <E extends Event> T off(Class<E> eventClass, EventListener<E> eventListener) {
+	<E extends Event> T off(Class<E> eventClass, EventListener<E> eventListener) {
 
 		return removeEventListener(eventClass, eventListener)
 	}
@@ -70,7 +72,7 @@ trait EventTarget<T> {
 	/**
 	 * An alias for {@link #addEventListener}.
 	 */
-	public <E extends Event> T on(Class<E> eventClass, RemovalToken removalToken = null, EventListener<E> eventListener) {
+	<E extends Event> T on(Class<E> eventClass, RemovalToken removalToken = null, EventListener<E> eventListener) {
 
 		return addEventListener(eventClass, removalToken, eventListener)
 	}
@@ -86,7 +88,7 @@ trait EventTarget<T> {
 	 *   The object ot receive and re-fire the events.
 	 * @return This object so it can be chained.
 	 */
-	public <E extends Event> T relay(Class<E> eventClass, EventTarget newTarget) {
+	<E extends Event> T relay(Class<E> eventClass, EventTarget newTarget) {
 
 		addEventListener(eventClass) { event ->
 			newTarget.trigger(event)
@@ -101,7 +103,7 @@ trait EventTarget<T> {
 	 * @param eventListener
 	 * @return This object so it can be chained.
 	 */
-	public <E extends Event> T removeEventListener(Class<E> eventClass, EventListener<E> eventListener) {
+	<E extends Event> T removeEventListener(Class<E> eventClass, EventListener<E> eventListener) {
 
 		eventListeners.removeIf { tuple ->
 			return tuple.v1 == eventClass && tuple.v2 == eventListener
@@ -123,7 +125,7 @@ trait EventTarget<T> {
 	 * @param event
 	 * @return This object so it can be chained.
 	 */
-	public <E extends Event> T trigger(E event) {
+	<E extends Event> T trigger(E event) {
 
 		return trigger(event, executorService)
 	}
@@ -136,7 +138,7 @@ trait EventTarget<T> {
 	 *   A specific {@code ExecutorService} whose {@code execute} method will be
 	 *   used for processing the event.
 	 */
-	public <E extends Event> T trigger(E event, ExecutorService executorService) {
+	<E extends Event> T trigger(E event, ExecutorService executorService) {
 
 		eventQueue.add(event)
 		executorService.execute { ->
