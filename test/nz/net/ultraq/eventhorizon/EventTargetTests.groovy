@@ -89,7 +89,19 @@ class EventTargetTests extends Specification {
 			1 * listener.handleEvent(event)
 	}
 
-	def 'Remove an event listener'() {
+	def 'Remove an event listener with the off method'() {
+		given:
+			var event = new TestEvent()
+			var listener = Mock(EventListener)
+			target.on(TestEvent, listener)
+		when:
+			target.off(TestEvent, listener)
+			target.trigger(event, new TestExecutorService())
+		then:
+			0 * listener.handleEvent(event)
+	}
+
+	def 'Remove an event listener with the removal token'() {
 		given:
 			var event = new TestEvent()
 			var listener = Mock(EventListener)
