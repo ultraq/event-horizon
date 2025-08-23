@@ -113,8 +113,7 @@ trait EventTarget<T> {
 
 	/**
 	 * Fire an event, invoking all listeners registered for that event (including
-	 * any listeners registered for the event's parent classes), using the
-	 * built-in {@link ExecutorService}.
+	 * any listeners registered for the event's parent classes).
 	 * <p>
 	 * Events will be processed in a separate thread, and in a FIFO manner,
 	 * ensuring that this method won't block while it waits on event handlers, and
@@ -126,19 +125,6 @@ trait EventTarget<T> {
 	 * @return This object so it can be chained.
 	 */
 	<E extends Event> T trigger(E event) {
-
-		return trigger(event, executorService)
-	}
-
-	/**
-	 * A {@link #trigger} implementation with a supplied {@code ExecutorService}.
-	 *
-	 * @param event
-	 * @param executorService
-	 *   A specific {@code ExecutorService} whose {@code execute} method will be
-	 *   used for processing the event.
-	 */
-	<E extends Event> T trigger(E event, ExecutorService executorService) {
 
 		eventQueue.add(event)
 		executorService.execute { ->

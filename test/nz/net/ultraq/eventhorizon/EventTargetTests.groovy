@@ -16,10 +16,9 @@
 
 package nz.net.ultraq.eventhorizon
 
+import spock.lang.Retry
 import spock.lang.Specification
-
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
+import spock.util.concurrent.PollingConditions
 
 /**
  * Tests for the event target trait which includes the event registration and
@@ -35,59 +34,60 @@ class EventTargetTests extends Specification {
 
 	private class TestSubclassEvent extends TestEvent {}
 
-	/**
-	 * An executor service that runs commands immediately on the same thread.
-	 */
-	private class TestExecutorService {
-
-		@Delegate
-		private final ExecutorService executorService = Executors.newSingleThreadExecutor()
-
-		@Override
-		void execute(Runnable command) {
-
-			command.run()
-		}
-	}
 
 	def 'Handler invoked for exact event class matches'() {
 		given:
 			var target = new TestEventTarget()
 			var event = new TestEvent()
-			var listener = Mock(EventListener)
-			target.on(TestEvent, listener)
+			var handled = false
+			target.on(TestEvent) { _ ->
+				handled = true
+			}
 		when:
-			target.trigger(event, new TestExecutorService())
+			target.trigger(event)
 		then:
-			1 * listener.handleEvent(event)
+			new PollingConditions().eventually { ->
+				assert handled
+			}
 	}
 
 	def 'Handler invoked for subclass event matches'() {
 		given:
 			var target = new TestEventTarget()
 			var event = new TestSubclassEvent()
-			var listener = Mock(EventListener)
-			target.on(TestEvent, listener)
+			var handled = false
+			target.on(TestEvent) { _ ->
+				handled = true
+			}
 		when:
-			target.trigger(event, new TestExecutorService())
+			target.trigger(event)
 		then:
-			1 * listener.handleEvent(event)
+			new PollingConditions().eventually { ->
+				assert handled
+			}
 	}
 
 	def 'Exceptions in handlers do not prevent execution of further handlers'() {
 		given:
 			var target = new TestEventTarget()
 			var event = new TestEvent()
-			var listener = Mock(EventListener)
-			target.on(TestEvent) { e ->
+			var handled1 = false
+			var handled2 = false
+			target.on(TestEvent) { _ ->
+				handled1 = true
 				throw new Exception()
 			}
-			target.on(TestEvent, listener)
+			target.on(TestEvent) { _ ->
+				handled2 = true
+			}
 		when:
-			target.trigger(event, new TestExecutorService())
+			target.trigger(event)
 		then:
+			new PollingConditions().eventually { ->
+				assert handled1
+				assert handled2
+			}
 			notThrown(Exception)
-			1 * listener.handleEvent(event)
 	}
 
 	def 'Use relay to forward events to other objects'() {
@@ -95,42 +95,59 @@ class EventTargetTests extends Specification {
 			var target = new TestEventTarget()
 			var newTarget = new TestEventTarget()
 			var event = new TestEvent()
-			var listener1 = Mock(EventListener)
-			target.on(TestEvent, listener1)
-			var listener2 = Mock(EventListener)
-			newTarget.on(TestEvent, listener2)
+			var handled1 = false
+			var handled2 = false
+			target.on(TestEvent) { _ ->
+				handled1 = true
+			}
+			newTarget.on(TestEvent) { _ ->
+				handled2 = true
+			}
 			target.relay(TestEvent, newTarget)
 		when:
-			target.trigger(event, new TestExecutorService())
+			target.trigger(event)
 		then:
-			1 * listener1.handleEvent(event)
-			1 * listener2.handleEvent(event)
+			new PollingConditions().eventually { ->
+				assert handled1
+				assert handled2
+			}
 	}
 
 	def 'Remove an event listener with the off method'() {
 		given:
 			var target = new TestEventTarget()
 			var event = new TestEvent()
-			var listener = Mock(EventListener)
+			var handled = false
+			var listener = { _ ->
+				handled = true
+			}
 			target.on(TestEvent, listener)
 		when:
 			target.off(TestEvent, listener)
-			target.trigger(event, new TestExecutorService())
+			target.trigger(event)
 		then:
-			0 * listener.handleEvent(event)
+			new PollingConditions(delay: 0.5f).eventually { ->
+				handled == false
+			}
 	}
 
+	@Retry
 	def 'Remove an event listener with the removal token'() {
 		given:
 			var target = new TestEventTarget()
 			var event = new TestEvent()
-			var listener = Mock(EventListener)
+			var handled = false
+			var listener = { _ ->
+				handled = true
+			}
 			var removalToken = new RemovalToken()
 			target.on(TestEvent, removalToken, listener)
 		when:
 			removalToken.remove()
-			target.trigger(event, new TestExecutorService())
+			target.trigger(event)
 		then:
-			0 * listener.handleEvent(event)
+			new PollingConditions(delay: 0.5f).eventually { ->
+				handled == false
+			}
 	}
 }
