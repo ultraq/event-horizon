@@ -58,7 +58,7 @@ configure {
 			.useJacoco()
 
 	createMavenPublication()
-		.withArtifacts(jar, sourcesJar, groovydocJar)
+		.withArtifacts(groovydocJar)
 		.configurePom() {
 			url = 'https://github.com/ultraq/event-horizon'
 			inceptionYear = '2019'
