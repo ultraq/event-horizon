@@ -16,13 +16,13 @@
 
 package nz.net.ultraq.eventhorizon
 
+import nz.net.ultraq.eventhorizon.EventTargetExecutors.ExecutorResource
+
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 /**
  * Inspired by the DOM, an event target is a class that can emit events which
@@ -36,7 +36,7 @@ trait EventTarget<T> {
 	private static final Logger logger = LoggerFactory.getLogger(EventTarget)
 
 	@Lazy
-	private final ExecutorService executorService = { Executors.newSingleThreadExecutor() }()
+	private final ExecutorResource executorResource = { EventTargetExecutors.createExecutor() }()
 	private final Queue<Event> eventQueue = new ConcurrentLinkedQueue<>()
 	private final List<Tuple2<Class<? extends Event>, EventListener<? extends Event>>> eventListeners = new CopyOnWriteArrayList<>()
 
@@ -127,7 +127,7 @@ trait EventTarget<T> {
 	<E extends Event> T trigger(E event) {
 
 		eventQueue.add(event)
-		executorService.execute { ->
+		executorResource.executorService().execute { ->
 			Thread.currentThread().name = "${this.class.simpleName} event handler"
 			var nextEvent = eventQueue.remove()
 			eventListeners.each { tuple ->

@@ -16,11 +16,11 @@
 
 plugins {
 	id 'idea'
-	id 'nz.net.ultraq.gradle.fluent-configuration' version '0.6.2'
+	id 'nz.net.ultraq.gradle.fluent-configuration' version '0.7.0'
 }
 
 description = 'An async, in-process, event system'
-version = '0.3.1'
+version = '0.3.2-SNAPSHOT'
 group = 'nz.net.ultraq'
 
 // @formatter:off
@@ -51,7 +51,7 @@ configure {
 		.configureVerification()
 			.withTestDirectory('test')
 			.withTestDependencies() {
-				testImplementation 'org.slf4j:slf4j-simple:2.0.17'
+				testImplementation 'ch.qos.logback:logback-classic:1.5.19'
 				testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
 			}
 			.useJUnitJupiter()

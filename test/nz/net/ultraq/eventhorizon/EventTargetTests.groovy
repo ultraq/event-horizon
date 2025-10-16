@@ -34,6 +34,11 @@ class EventTargetTests extends Specification {
 
 	private class TestSubclassEvent extends TestEvent {}
 
+	def cleanup() {
+		System.gc()
+		Thread.sleep(1000)
+		assert EventTargetExecutors.active.get() == 0
+	}
 
 	def 'Handler invoked for exact event class matches'() {
 		given:
