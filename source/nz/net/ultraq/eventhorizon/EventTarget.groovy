@@ -21,7 +21,8 @@ import nz.net.ultraq.eventhorizon.EventTargetExecutors.ExecutorResource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.BlockingQueue
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.ExecutorService
 
@@ -37,7 +38,7 @@ trait EventTarget<T> {
 	private static final Logger logger = LoggerFactory.getLogger(EventTarget)
 
 	private ExecutorResource executorResource
-	private final Queue<Event> eventQueue = new ConcurrentLinkedQueue<>()
+	private final BlockingQueue<Event> eventQueue = new ArrayBlockingQueue<>(10)
 	private final List<Tuple2<Class<? extends Event>, EventListener<? extends Event>>> eventListeners = new CopyOnWriteArrayList<>()
 
 	/**
@@ -142,10 +143,10 @@ trait EventTarget<T> {
 	 */
 	<E extends Event> T trigger(E event) {
 
-		eventQueue.add(event)
+		eventQueue.put(event)
 		getExecutorService().execute { ->
 			Thread.currentThread().name = "${this.class.simpleName} event handler"
-			var nextEvent = eventQueue.remove()
+			var nextEvent = eventQueue.take()
 			eventListeners.each { tuple ->
 				def (eventClass, listener) = tuple
 				if (eventClass.isInstance(nextEvent)) {
