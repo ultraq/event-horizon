@@ -72,7 +72,14 @@ class EventTargetExecutors {
 
 		var count = counter.getAndIncrement()
 		logger.debug('Creating EventTarget executor service #{}', count)
+
+		// The executor is a single thread executor because we want predictability
+		// in the event order when received by listeners.  If I want a more
+		// performant executor like a work-stealing thread pool, then I'll need to
+		// come up with some way to coordinate that ordering in the
+		// {@link EventTarget#trigger} method.
 		var executorResource = new ExecutorResource(Executors.newSingleThreadExecutor(), count)
+
 		active.incrementAndGet()
 		return executorResource
 	}

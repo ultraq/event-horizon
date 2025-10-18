@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory
 
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.ExecutorService
 
 /**
  * Inspired by the DOM, an event target is a class that can emit events which
@@ -35,8 +36,7 @@ trait EventTarget<T> {
 
 	private static final Logger logger = LoggerFactory.getLogger(EventTarget)
 
-	@Lazy
-	private final ExecutorResource executorResource = { EventTargetExecutors.createExecutor() }()
+	private ExecutorResource executorResource
 	private final Queue<Event> eventQueue = new ConcurrentLinkedQueue<>()
 	private final List<Tuple2<Class<? extends Event>, EventListener<? extends Event>>> eventListeners = new CopyOnWriteArrayList<>()
 
@@ -59,6 +59,22 @@ trait EventTarget<T> {
 		eventListeners << new Tuple2<>(eventClass, eventListener)
 		removalToken?.setRemovalItems(this, eventClass, eventListener)
 		return (T)this
+	}
+
+	/**
+	 * Lozy-load the executor service.  Previously used the {@code @Lazy}
+	 * annotation, but I found that something was invoking it early.
+	 */
+	private ExecutorService getExecutorService() {
+
+		if (!executorResource) {
+			synchronized (this) {
+				if (!executorResource) {
+					executorResource = EventTargetExecutors.createExecutor()
+				}
+			}
+		}
+		return executorResource.executorService()
 	}
 
 	/**
@@ -127,7 +143,7 @@ trait EventTarget<T> {
 	<E extends Event> T trigger(E event) {
 
 		eventQueue.add(event)
-		executorResource.executorService().execute { ->
+		getExecutorService().execute { ->
 			Thread.currentThread().name = "${this.class.simpleName} event handler"
 			var nextEvent = eventQueue.remove()
 			eventListeners.each { tuple ->
