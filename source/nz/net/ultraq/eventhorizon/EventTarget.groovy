@@ -33,7 +33,7 @@ import java.util.concurrent.ExecutorService
  * @param <T> The class implementing this trait, eg: {@code class MyClass implements EventTarget<MyClass>}
  * @author Emanuel Rabina
  */
-trait EventTarget<T> {
+trait EventTarget<T extends EventTarget> {
 
 	private static final Logger logger = LoggerFactory.getLogger(EventTarget)
 
