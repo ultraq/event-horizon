@@ -20,7 +20,7 @@ plugins {
 }
 
 description = 'An async, in-process, event system'
-version = '0.3.2-SNAPSHOT'
+version = '0.3.2'
 group = 'nz.net.ultraq'
 
 // @formatter:off
@@ -45,13 +45,13 @@ configure {
 		.configureSource()
 			.withSourceDirectory('source')
 			.withDependencies {
-				api 'org.apache.groovy:groovy:4.0.28'
+				api 'org.apache.groovy:groovy:4.0.29'
 				implementation 'org.slf4j:slf4j-api:2.0.17'
 			}
 		.configureVerification()
 			.withTestDirectory('test')
 			.withTestDependencies() {
-				testImplementation 'ch.qos.logback:logback-classic:1.5.19'
+				testImplementation 'ch.qos.logback:logback-classic:1.5.21'
 				testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
 			}
 			.useJUnitJupiter()
