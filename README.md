@@ -35,7 +35,7 @@ can call the `trigger` method to emit an event:
 ```java
 import nz.net.ultraq.eventhorizon.EventTarget;
 
-public class MyClass implements EventTarget {
+public class MyClass implements EventTarget<MyClass> {
 
   public void myMethod() {
     trigger(new GreetingEvent("Hello!"));
