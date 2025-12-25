@@ -24,11 +24,13 @@ import groovy.transform.PackageScope
 import java.lang.ref.Cleaner
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Utilities for creating and shutting down executors used by
  * {@link EventTarget}s.
+ *
+ * <p>Now that the executor is a static virtual-thread-per-task shared across
+ * all {@link EventTarget}s, it's unlikely that the cleaner will ever run.
  *
  * @author Emanuel Rabina
  */
@@ -36,17 +38,14 @@ class EventTargetExecutors {
 
 	private static final Logger logger = LoggerFactory.getLogger(EventTargetExecutors)
 	private static final Cleaner cleaner = Cleaner.create()
-	private static final AtomicInteger counter = new AtomicInteger(1)
-	@PackageScope
-	static final AtomicInteger active = new AtomicInteger(0)
 
 	/**
 	 * Class to hold an executor instance for automatic cleanup.
 	 */
 	@ImmutableOptions(knownImmutables = 'executorService')
-	static record ExecutorResource(ExecutorService executorService, int count) {
+	static record ExecutorResource(ExecutorService executorService) {
 		public ExecutorResource {
-			cleaner.register(this, new ExecutorCleanup(executorService, count))
+			cleaner.register(this, new ExecutorCleanup(executorService))
 		}
 	}
 
@@ -54,12 +53,11 @@ class EventTargetExecutors {
 	 * Cleanup action for shutting down executors.
 	 */
 	@ImmutableOptions(knownImmutables = 'executorService')
-	private static record ExecutorCleanup(ExecutorService executorService, int count) implements Runnable {
+	private static record ExecutorCleanup(ExecutorService executorService) implements Runnable {
 		@Override
 		void run() {
-			logger.debug('Shutting down EventTarget executor service #{}', count)
+			logger.debug('Shutting down EventTarget executor service')
 			executorService.shutdown()
-			active.decrementAndGet()
 		}
 	}
 
@@ -70,17 +68,7 @@ class EventTargetExecutors {
 	@PackageScope
 	static ExecutorResource createExecutor() {
 
-		var count = counter.getAndIncrement()
-		logger.debug('Creating EventTarget executor service #{}', count)
-
-		// The executor is a single thread executor because we want predictability
-		// in the event order when received by listeners.  If I want a more
-		// performant executor like a work-stealing thread pool, then I'll need to
-		// come up with some way to coordinate that ordering in the
-		// {@link EventTarget#trigger} method.
-		var executorResource = new ExecutorResource(Executors.newSingleThreadExecutor(), count)
-
-		active.incrementAndGet()
-		return executorResource
+		logger.debug('Creating EventTarget executor service')
+		return new ExecutorResource(Executors.newVirtualThreadPerTaskExecutor())
 	}
 }

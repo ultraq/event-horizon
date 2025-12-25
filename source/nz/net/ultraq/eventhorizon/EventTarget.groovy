@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.ExecutorService
+import java.util.concurrent.Semaphore
 
 /**
  * Inspired by the DOM, an event target is a class that can emit events which
@@ -36,9 +36,10 @@ import java.util.concurrent.ExecutorService
 trait EventTarget<T extends EventTarget> {
 
 	private static final Logger logger = LoggerFactory.getLogger(EventTarget)
+	private static final ExecutorResource executorResource = EventTargetExecutors.createExecutor()
 
-	private ExecutorResource executorResource
 	private final BlockingQueue<Event> eventQueue = new ArrayBlockingQueue<>(10)
+	private final Semaphore eventHandlingSemaphore = new Semaphore(1, true)
 	private final List<Tuple2<Class<? extends Event>, EventListener<? extends Event>>> eventListeners = new CopyOnWriteArrayList<>()
 
 	/**
@@ -60,22 +61,6 @@ trait EventTarget<T extends EventTarget> {
 		eventListeners << new Tuple2<>(eventClass, eventListener)
 		removalToken?.setRemovalItems(this, eventClass, eventListener)
 		return (T)this
-	}
-
-	/**
-	 * Lozy-load the executor service.  Previously used the {@code @Lazy}
-	 * annotation, but I found that something was invoking it early.
-	 */
-	private ExecutorService getExecutorService() {
-
-		if (!executorResource) {
-			synchronized (this) {
-				if (!executorResource) {
-					executorResource = EventTargetExecutors.createExecutor()
-				}
-			}
-		}
-		return executorResource.executorService()
 	}
 
 	/**
@@ -144,17 +129,19 @@ trait EventTarget<T extends EventTarget> {
 	<E extends Event> T trigger(E event) {
 
 		eventQueue.put(event)
-		getExecutorService().execute { ->
-			Thread.currentThread().name = "${this.class.simpleName} event handler"
-			var nextEvent = eventQueue.take()
-			eventListeners.each { tuple ->
-				def (eventClass, listener) = tuple
-				if (eventClass.isInstance(nextEvent)) {
-					try {
-						listener.handleEvent(nextEvent)
-					}
-					catch (Exception ex) {
-						logger.error('An error occurred while processing {} events on {}', nextEvent.class.simpleName, this.class.simpleName, ex)
+		executorResource.executorService().execute { ->
+			eventHandlingSemaphore.acquireAndRelease { ->
+				Thread.currentThread().name = "${this.class.simpleName} event handler"
+				var nextEvent = eventQueue.take()
+				eventListeners.each { tuple ->
+					def (eventClass, listener) = tuple
+					if (eventClass.isInstance(nextEvent)) {
+						try {
+							listener.handleEvent(nextEvent)
+						}
+						catch (Exception ex) {
+							logger.error('An error occurred while processing {} events on {}', nextEvent.class.simpleName, this.class.simpleName, ex)
+						}
 					}
 				}
 			}

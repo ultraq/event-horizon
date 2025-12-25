@@ -13,13 +13,13 @@ An async, in-process, event system.  Originally, the event system for the
 Installation
 ------------
 
-Minimum of Java 17 required.
+Minimum of Java 21 required.
 
 Add a dependency to your project with the following co-ordinates:
 
  - GroupId: `nz.net.ultraq`
  - ArtifactId: `event-horizon`
- - Version: `0.3.2`
+ - Version: `0.4.0-SNAPSHOT`
 
 Check the [project tags](https://github.com/ultraq/event-horizon/tags) for a
 list of available versions.

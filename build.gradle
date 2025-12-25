@@ -16,17 +16,17 @@
 
 plugins {
 	id 'idea'
-	id 'nz.net.ultraq.gradle.fluent-configuration' version '0.7.0'
+	id 'nz.net.ultraq.gradle.fluent-configuration' version '0.8.0'
 }
 
 description = 'An async, in-process, event system'
-version = '0.3.2'
+version = '0.4.0-SNAPSHOT'
 group = 'nz.net.ultraq'
 
 // @formatter:off
 configure {
 	createGroovyLibraryProject()
-		.useJavaVersion(17)
+		.useJavaVersion(21)
 		.useMavenCentralRepositories()
 		.withJarOptions() {
 			manifest {
@@ -46,6 +46,7 @@ configure {
 			.withSourceDirectory('source')
 			.withDependencies {
 				api 'org.apache.groovy:groovy:4.0.29'
+				implementation 'nz.net.ultraq.groovy:groovy-extensions:3.3.0'
 				implementation 'org.slf4j:slf4j-api:2.0.17'
 			}
 		.configureVerification()
