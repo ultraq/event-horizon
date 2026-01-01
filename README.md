@@ -19,7 +19,7 @@ Add a dependency to your project with the following co-ordinates:
 
  - GroupId: `nz.net.ultraq`
  - ArtifactId: `event-horizon`
- - Version: `0.4.0-SNAPSHOT`
+ - Version: `0.4.0`
 
 Check the [project tags](https://github.com/ultraq/event-horizon/tags) for a
 list of available versions.
