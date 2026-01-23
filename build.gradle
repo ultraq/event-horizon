@@ -16,7 +16,7 @@
 
 plugins {
 	id 'idea'
-	id 'nz.net.ultraq.gradle.fluent-configuration' version '0.8.0'
+	id 'nz.net.ultraq.gradle.fluent-configuration' version '0.9.1'
 }
 
 description = 'An async, in-process, event system'
@@ -71,10 +71,12 @@ configure {
 			email: 'emanuelrabina@gmail.com',
 			url: 'https://www.ultraq.net.nz'
 		])
-		.publishToMavenCentral(
+
+	createMavenCentralPublisherBundle()
+		.forThisProject()
+		.withCredentials(
 			findProperty('mavenCentral.publisher.username'),
-			findProperty('mavenCentral.publisher.password'),
-			'nz.net.ultraq'
+      findProperty('mavenCentral.publisher.password')
 		)
 }
 // @formatter:on
