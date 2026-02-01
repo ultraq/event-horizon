@@ -20,7 +20,7 @@ plugins {
 }
 
 description = 'An async, in-process, event system'
-version = '0.4.0'
+version = '0.5.0-SNAPSHOT'
 group = 'nz.net.ultraq'
 
 // @formatter:off
@@ -35,7 +35,7 @@ configure {
 		}
 		.withGroovydocOptions() {
 			overviewText = resources.text.fromString('''
-				An async, in-process, event system.  Originally, the event system for the
+				An async, in-process, event system.  Created as the event system for the
 				<a href="https://github.com/ultraq/redhorizon">Red Horizon</a> game engine,
 				hence the name.
 			''')

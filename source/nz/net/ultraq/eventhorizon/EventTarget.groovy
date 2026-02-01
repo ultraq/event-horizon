@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory
 
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.concurrent.BlockingQueue
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.Semaphore
 
@@ -124,12 +125,16 @@ trait EventTarget<T extends EventTarget> {
 	 * impact other listeners from running.
 	 *
 	 * @param event
-	 * @return This object so it can be chained.
+	 * @return
+	 *   A {@code CompletableFuture} whose completion stage will be done when all
+	 *   event listeners for the event have completed, so that callers can perform
+	 *   actions afterwards.  Exceptions thrown by any event listeners will not
+	 *   cause an exceptional completion.
 	 */
-	<E extends Event> T trigger(E event) {
+	<E extends Event> CompletableFuture<Void> trigger(E event) {
 
 		eventQueue.put(event)
-		executorResource.executorService().execute { ->
+		return CompletableFuture.runAsync({ ->
 			eventHandlingSemaphore.acquireAndRelease { ->
 				Thread.currentThread().name = "${this.class.simpleName} event handler"
 				var nextEvent = eventQueue.take()
@@ -145,7 +150,6 @@ trait EventTarget<T extends EventTarget> {
 					}
 				}
 			}
-		}
-		return (T)this
+		}, executorResource.executorService())
 	}
 }
