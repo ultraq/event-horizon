@@ -129,7 +129,8 @@ trait EventTarget<T extends EventTarget> {
 	 *   A {@code CompletableFuture} whose completion stage will be done when all
 	 *   event listeners for the event have completed, so that callers can perform
 	 *   actions afterwards.  Exceptions thrown by any event listeners will not
-	 *   cause an exceptional completion.
+	 *   prevent other event listeners from running, and will not cause an
+	 *   exceptional completion in the {@code CompletableFuture}.
 	 */
 	<E extends Event> CompletableFuture<Void> trigger(E event) {
 
