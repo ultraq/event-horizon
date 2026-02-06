@@ -16,7 +16,7 @@
 
 plugins {
 	id 'idea'
-	id 'nz.net.ultraq.gradle.fluent-configuration' version '0.9.1'
+	id 'nz.net.ultraq.gradle.fluent-configuration' version '0.9.2'
 }
 
 description = 'An async, in-process, event system'
