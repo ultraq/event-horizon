@@ -140,7 +140,7 @@ trait EventTarget<T extends EventTarget> {
 				Thread.currentThread().name = "${this.class.simpleName} event handler"
 				var nextEvent = eventQueue.take()
 				eventListeners.each { tuple ->
-					def (eventClass, listener) = tuple
+					var (eventClass, listener) = tuple
 					if (eventClass.isInstance(nextEvent)) {
 						try {
 							listener.handleEvent(nextEvent)
