@@ -116,9 +116,36 @@ trait EventTarget<T extends EventTarget> {
 
 	/**
 	 * Fire an event, invoking all listeners registered for that event (including
-	 * any listeners registered for the event's parent classes).
-	 * <p>
-	 * Events will be processed in a separate thread, and in a FIFO manner,
+	 * any listeners registered for the event's parent classes).  This is a
+	 * fire-and-forget variant of {@link #triggerAsync}, without the overhead of
+	 * creating a {@code CompletableFuture} instance.  If you require some way of
+	 * tracking the completion of event listeners, use {@link #triggerAsync}
+	 * instead.
+	 *
+	 * <p>Events will be processed in a separate thread, and in a FIFO manner,
+	 * ensuring that this method won't block while it waits on event handlers, and
+	 * to allow some kind of predictability in the way/order events are processed.
+	 * Exceptions that arise from any event listeners will be logged but not
+	 * impact other listeners from running.
+	 *
+	 * @param event
+	 */
+	<E extends Event> void trigger(E event) {
+
+		eventQueue.put(event)
+		executorResource.executorService().submit { ->
+			triggerProcess()
+		}
+	}
+
+	/**
+	 * Fire an event, invoking all listeners registered for that event (including
+	 * any listeners registered for the event's parent classes).  This is a
+	 * tracked variant of {@link #trigger)}, using {@code CompletableFuture}s for
+	 * that purpose.  If you don't need that overhead, use {@link #trigger}
+	 * instead.
+	 *
+	 * <p>Events will be processed in a separate thread, and in a FIFO manner,
 	 * ensuring that this method won't block while it waits on event handlers, and
 	 * to allow some kind of predictability in the way/order events are processed.
 	 * Exceptions that arise from any event listeners will be logged but not
@@ -132,25 +159,33 @@ trait EventTarget<T extends EventTarget> {
 	 *   prevent other event listeners from running, and will not cause an
 	 *   exceptional completion in the {@code CompletableFuture}.
 	 */
-	<E extends Event> CompletableFuture<Void> trigger(E event) {
+	<E extends Event> CompletableFuture<Void> triggerAsync(E event) {
 
 		eventQueue.put(event)
 		return CompletableFuture.runAsync({ ->
-			eventHandlingSemaphore.acquireAndRelease { ->
-				Thread.currentThread().name = "${this.class.simpleName} event handler"
-				var nextEvent = eventQueue.take()
-				eventListeners.each { tuple ->
-					var (eventClass, listener) = tuple
-					if (eventClass.isInstance(nextEvent)) {
-						try {
-							listener.handleEvent(nextEvent)
-						}
-						catch (Exception ex) {
-							logger.error('An error occurred while processing {} events on {}', nextEvent.class.simpleName, this.class.simpleName, ex)
-						}
+			triggerProcess()
+		}, executorResource.executorService())
+	}
+
+	/**
+	 * Process the next event in the queue.
+	 */
+	private void triggerProcess() {
+
+		eventHandlingSemaphore.acquireAndRelease { ->
+			Thread.currentThread().name = "${this.class.simpleName} event handler"
+			var nextEvent = eventQueue.take()
+			eventListeners.each { tuple ->
+				var (eventClass, listener) = tuple
+				if (eventClass.isInstance(nextEvent)) {
+					try {
+						listener.handleEvent(nextEvent)
+					}
+					catch (Exception ex) {
+						logger.error('An error occurred while processing {} events on {}', nextEvent.class.simpleName, this.class.simpleName, ex)
 					}
 				}
 			}
-		}, executorResource.executorService())
+		}
 	}
 }

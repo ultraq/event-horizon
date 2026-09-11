@@ -16,11 +16,11 @@
 
 plugins {
 	id 'idea'
-	id 'nz.net.ultraq.gradle.fluent-configuration' version '0.9.4'
+	id 'nz.net.ultraq.gradle.fluent-configuration' version '0.10.1'
 }
 
 description = 'An async, in-process, event system'
-version = '0.6.0'
+version = '0.7.0-SNAPSHOT'
 group = 'nz.net.ultraq'
 
 // @formatter:off
@@ -45,14 +45,14 @@ configure {
 		.configureSource()
 			.withSourceDirectory('source')
 			.withDependencies {
-				api 'org.apache.groovy:groovy:5.0.4'
-				implementation 'nz.net.ultraq.groovy:groovy-extensions:4.0.0'
-				implementation 'org.slf4j:slf4j-api:2.0.17'
+				api 'org.apache.groovy:groovy:5.1.2'
+				implementation 'nz.net.ultraq.groovy:groovy-extensions:4.0.1'
+				implementation 'org.slf4j:slf4j-api:2.0.19'
 			}
 		.configureVerification()
 			.withTestDirectory('test')
 			.withTestDependencies() {
-				testImplementation 'ch.qos.logback:logback-classic:1.5.21'
+				testImplementation 'ch.qos.logback:logback-classic:1.6.3'
 				testImplementation 'org.spockframework:spock-core:2.4-groovy-5.0'
 			}
 			.useJUnitJupiter()
