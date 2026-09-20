@@ -23,7 +23,6 @@ description = 'An async, in-process, event system'
 version = '0.7.0'
 group = 'nz.net.ultraq'
 
-// @formatter:off
 configure {
 	createGroovyLibraryProject()
 		.useJavaVersion(21)
@@ -79,4 +78,3 @@ configure {
       findProperty('mavenCentral.publisher.password')
 		)
 }
-// @formatter:on
