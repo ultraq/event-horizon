@@ -73,6 +73,7 @@ configure {
 
 	createMavenCentralPublisherBundle()
 		.forThisProject()
+		.useAutomaticPublishing()
 		.withCredentials(
 			findProperty('mavenCentral.publisher.username'),
       findProperty('mavenCentral.publisher.password')
