@@ -46,7 +46,7 @@ configure {
 			.withSourceDirectory('source')
 			.withDependencies {
 				api 'org.apache.groovy:groovy:5.1.2'
-				implementation 'nz.net.ultraq.groovy:groovy-extensions:4.0.1'
+				implementation 'nz.net.ultraq.groovy:groovy-extensions:4.1.0'
 				implementation 'org.slf4j:slf4j-api:2.0.19'
 			}
 		.configureVerification()
